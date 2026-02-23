@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "454755295268",
+    "project_id": "pinterest-2026",
+    "storage_bucket": "pinterest-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:454755295268:android:20985ec2c13686ae4b38b1",
+        "android_client_info": {
+          "package_name": "com.example.pinterest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "454755295268-cb0mfl5ereggemivjj78m7ht4bp0qhcm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pinterest",
+            "certificate_hash": "79e90f1bda9fc330ed04ea06e010d5ee8fd09454"
+          }
+        },
+        {
+          "client_id": "454755295268-3nu5ce8v4a76846odeskplo4ta4fgsrp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrbMjrksVYPX03Eu0j2vnH3uDgKJVCVfA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "454755295268-3nu5ce8v4a76846odeskplo4ta4fgsrp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "454755295268-4to7jtdrf4pidt68qgnih2nlij9vpfie.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pinterest"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
