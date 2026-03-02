@@ -1,26 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pinterest/views/upload_popup.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert'; 
-import '../widgets/pin.dart';
+import '../services/unsplash.dart';
+import '../widgets/pin.dart';  
+import 'pin.dart';              
 import 'search.dart';
 import 'profile.dart';
-import 'pin.dart';
-
-class Photo {
-  final String title;
-  final String url;
-
-  Photo({required this.title, required this.url});
-
-  factory Photo.fromJson(Map<String, dynamic> json) {
-    return Photo(
-      title: json['title'],
-      url: json['url'], 
-    );
-  }
-}
-
 class Feed extends StatefulWidget {
   const Feed({super.key});
 
@@ -63,37 +47,59 @@ class _FeedState extends State<Feed> {
   }
 }
 
-class FeedContent extends StatelessWidget {
+class FeedContent extends StatefulWidget {
   const FeedContent({super.key});
 
   @override
+  State<FeedContent> createState() => _FeedContentState();
+}
+
+class _FeedContentState extends State<FeedContent> {
+  final UnsplashService _unsplashService = UnsplashService();
+  List<String> images = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadImages();
+  }
+
+  Future<void> loadImages() async {
+    images = await _unsplashService.fetchImages(query: 'aesthetic');
+    setState(() => isLoading = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Para ti'),
-      ),
-      body: Padding(
+      appBar: AppBar(title: const Text('Para ti')),
+      body: GridView.builder(
         padding: const EdgeInsets.all(8),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: 10,
-          itemBuilder: (context, index) {
-            return PinGridItem(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PinDetail(),
-                  ),
-                );
-              },
-            );
-          },
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 0.65,
         ),
+        itemCount: images.length,
+        itemBuilder: (context, index) {
+          return PinGridItem(
+            imageUrl: images[index],
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PinDetail(imageUrl: images[index]),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

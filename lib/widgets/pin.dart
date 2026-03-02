@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
 class PinGridItem extends StatelessWidget {
-  final VoidCallback onTap;
+  final String imageUrl;
+  final VoidCallback? onTap;
 
-  const PinGridItem({super.key, required this.onTap});
+  const PinGridItem({
+    super.key,
+    required this.imageUrl,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -11,8 +16,9 @@ class PinGridItem extends StatelessWidget {
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          color: Colors.grey[300],
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
         ),
       ),
     );

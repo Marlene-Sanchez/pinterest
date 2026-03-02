@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../auth_service.dart';
+import 'register.dart';
+import 'package:pinterest/views/register.dart';
 import 'feed.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -104,6 +108,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RegisterScreen(),
+                  ),
+                );
+              },
+              child: const Text('¿No tienes cuenta? Regístrate'),
+            ),
           ],
         ),
       ),
@@ -111,22 +126,23 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> loginWithEmail() async {
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+  try {
+    await authService.value.signIn(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const Feed()),
-      );
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const Feed()),
+    );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? 'Error')),
       );
     }
   }
+
   /*Future <void> loginWithGoogle() async {
     final GoogleSignIn signIn = GoogleSignIn.instance;
     try {

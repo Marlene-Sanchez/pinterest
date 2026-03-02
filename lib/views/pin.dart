@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class PinDetail extends StatelessWidget {
-  const PinDetail({super.key});
+  final String imageUrl;
+
+  const PinDetail({
+    super.key,
+    required this.imageUrl, 
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -10,9 +15,10 @@ class PinDetail extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: Container(
+            child: Image.network( 
+              imageUrl,
               width: double.infinity,
-              color: Colors.grey[300],
+              fit: BoxFit.cover,
             ),
           ),
           Padding(
