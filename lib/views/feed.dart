@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:pinterest/views/upload_popup.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; 
 import '../widgets/pin.dart';
 import 'search.dart';
 import 'profile.dart';
 import 'pin.dart';
 
+class Photo {
+  final String title;
+  final String url;
+
+  Photo({required this.title, required this.url});
+
+  factory Photo.fromJson(Map<String, dynamic> json) {
+    return Photo(
+      title: json['title'],
+      url: json['url'], 
+    );
+  }
+}
 
 class Feed extends StatefulWidget {
   const Feed({super.key});
@@ -32,15 +47,16 @@ class _FeedState extends State<Feed> {
           if (index == 2) {
             showUploadPopup(context);
           } else {
-            setState(() => currentIndex = index);
+            setState(() => currentIndex = index> 2 ? index - 1 : index);
           }
         },
-        items: const [
+        items: const [  
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.add), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        ],
+        ],fixedColor: Colors.black,
+        unselectedItemColor: Colors.blueGrey,
         
       ),
     );

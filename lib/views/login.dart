@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.g_mobiledata),
-                onPressed: () {},
+                onPressed: () {}  ,
                 label: const Text('Continuar con Google'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -127,6 +127,29 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
-  
+  /*Future <void> loginWithGoogle() async {
+    final GoogleSignIn signIn = GoogleSignIn.instance;
+    try {
+      final GoogleSignInAccount? account = await signIn.signIn();
+      if (account == null) return;
 
-}
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: auth.accessToken,
+        idToken: auth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const Feed()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+
+  }*/
+  }

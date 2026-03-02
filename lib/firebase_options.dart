@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '454755295268',
     projectId: 'pinterest-2026',
     storageBucket: 'pinterest-2026.firebasestorage.app',
+    androidClientId: '454755295268-cb0mfl5ereggemivjj78m7ht4bp0qhcm.apps.googleusercontent.com',
+    iosClientId: '454755295268-4to7jtdrf4pidt68qgnih2nlij9vpfie.apps.googleusercontent.com',
     iosBundleId: 'com.example.pinterest',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '454755295268',
     projectId: 'pinterest-2026',
     storageBucket: 'pinterest-2026.firebasestorage.app',
+    androidClientId: '454755295268-cb0mfl5ereggemivjj78m7ht4bp0qhcm.apps.googleusercontent.com',
+    iosClientId: '454755295268-4to7jtdrf4pidt68qgnih2nlij9vpfie.apps.googleusercontent.com',
     iosBundleId: 'com.example.pinterest',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'pinterest-2026.firebasestorage.app',
     measurementId: 'G-D4SVQC8B05',
   );
+
 }
