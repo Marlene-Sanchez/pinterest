@@ -144,28 +144,27 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /*Future <void> loginWithGoogle() async {
-    final GoogleSignIn signIn = GoogleSignIn.instance;
+    final credential = GoogleAuthProvider.credential(idToken: idToken);
     try {
-      final GoogleSignInAccount? account = await signIn.signIn();
-      if (account == null) return;
-
-      final GoogleSignInAuthentication auth = await account.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: auth.accessToken,
-        idToken: auth.idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const Feed()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
+    final userCredential = await FirebaseAuth.instance.currentUser
+        ?.linkWithCredential(credential);
+  } on FirebaseAuthException catch (e) {
+    switch (e.code) {
+      case "provider-already-linked":
+        print("The provider has already been linked to the user.");
+        break;
+      case "invalid-credential":
+        print("The provider's credential is not valid.");
+        break;
+      case "credential-already-in-use":
+        print("The account corresponding to the credential already exists, "
+            "or is already linked to a Firebase User.");
+        break;
+      // See the API reference for the full list of error codes.
+      default:
+        print("Unknown error.");
+      }
+      }
 
   }*/
   }

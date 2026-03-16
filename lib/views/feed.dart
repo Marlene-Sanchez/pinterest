@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pinterest/views/upload_popup.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../services/unsplash.dart';
 import '../widgets/pin.dart';  
 import 'pin.dart';              
@@ -8,7 +9,7 @@ import 'profile.dart';
 class Feed extends StatefulWidget {
   const Feed({super.key});
 
-  @override
+  @override 
   State<Feed> createState() => _FeedState();
 }
 
@@ -70,36 +71,56 @@ class _FeedContentState extends State<FeedContent> {
     setState(() => isLoading = false);
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Para ti')),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.65,
-        ),
-        itemCount: images.length,
-        itemBuilder: (context, index) {
-          return PinGridItem(
-            imageUrl: images[index],
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PinDetail(imageUrl: images[index]),
+    return SafeArea(
+      child: Column(
+        children: [
+
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Text(
+                  "Para ti",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              );
-            },
-          );
-        },
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: MasonryGridView.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                itemCount: images.length,
+                itemBuilder: (context, index) {
+                  return PinGridItem(
+                    imageUrl: images[index],
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PinDetail(imageUrl: images[index]),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

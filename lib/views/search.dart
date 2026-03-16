@@ -1,35 +1,148 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/unsplash.dart';
+import '../widgets/pin.dart';
+import 'pin.dart';
 
-class Search extends StatelessWidget {
+class Search extends StatefulWidget {
   const Search({super.key});
 
   @override
+  State<Search> createState() => _SearchState();
+}
+
+class _SearchState extends State<Search> {
+
+  List<String> searchHistory = [];
+
+  final UnsplashService _unsplashService = UnsplashService();
+
+  List<String> images = [];
+
+  bool isLoading = false;
+
+  final TextEditingController controller = TextEditingController();
+
+  Future<void> searchImages(String query) async {
+
+    await saveSearch(query);
+
+    setState(() {
+      isLoading = true;
+    });
+
+    images = await _unsplashService.fetchImages(query: query);
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> loadHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    searchHistory = prefs.getStringList('searchHistory') ?? [];
+    setState(() {});
+  }
+
+  Future<void> saveSearch(String query) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    searchHistory.remove(query);
+    searchHistory.insert(0, query);
+
+    if (searchHistory.length > 5) {
+      searchHistory.removeLast();
+    }
+
+    await prefs.setStringList('searchHistory', searchHistory);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadHistory();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       appBar: AppBar(
         title: TextField(
-          decoration: InputDecoration(
-            hintText: 'Busca ideas',
-            prefixIcon: const Icon(Icons.search),
-            filled: true,
-            fillColor: Colors.grey[200],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
-              borderSide: BorderSide.none,
-            ),
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: "Search ideas",
+            border: InputBorder.none,
           ),
+          onSubmitted: searchImages,
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: const [
-          Text('Keyword1'),
-          SizedBox(height: 12),
-          Text('Keyword2'),
-          SizedBox(height: 12),
-          Text('Keyword3'),
-          SizedBox(height: 12),
-          Text('Keyword4'),
+
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          if (searchHistory.isNotEmpty)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Text(
+                "Recent searches",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+
+          if (searchHistory.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Wrap(
+                spacing: 8,
+                children: searchHistory.map((term) {
+                  return ActionChip(
+                    label: Text(term),
+                    onPressed: () {
+                      controller.text = term;
+                      searchImages(term);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+
+          const SizedBox(height: 10),
+
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : MasonryGridView.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    padding: const EdgeInsets.all(8),
+                    itemCount: images.length,
+                    itemBuilder: (context, index) {
+
+                      return PinGridItem(
+                        imageUrl: images[index],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PinDetail(
+                                imageUrl: images[index],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+
+                    },
+                  ),
+          )
         ],
       ),
     );
