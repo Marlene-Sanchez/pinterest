@@ -1,5 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'create_pin.dart';
+import 'dart:io';
+final ImagePicker _picker = ImagePicker();
+Future<void> pickFromCamera(BuildContext context) async {
+  final XFile? image = await _picker.pickImage(
+    source: ImageSource.camera,
+    imageQuality: 80,
+  );
 
+  if (image != null) {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreatePin(imageFile: File(image!.path)),
+      ),
+    );
+  }
+}
+
+Future<void> pickFromGallery(BuildContext context) async {
+  final XFile? image = await _picker.pickImage(
+    source: ImageSource.gallery,
+    imageQuality: 80,
+  );
+
+  if (image != null) {
+    Navigator.pop(context);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreatePin(imageFile: File(image.path)),
+      ),
+    );
+  }
+}
 void showUploadPopup(BuildContext context) {
   showModalBottomSheet(
     context: context,
@@ -28,6 +65,7 @@ void showUploadPopup(BuildContext context) {
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
+
             ),
             const SizedBox(height: 24),
             Row(
@@ -35,9 +73,13 @@ void showUploadPopup(BuildContext context) {
                 _UploadOption(
                   icon: Icons.push_pin,
                   label: 'Pin',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pop(context);
+                    showPinSourcePopup(context);
+                  },
                 ),
                 const SizedBox(width: 24),
+
                 _UploadOption(
                   icon: Icons.dashboard,
                   label: 'Board',
@@ -51,13 +93,67 @@ void showUploadPopup(BuildContext context) {
       );
     },
   );
+  
 }
+
+void showPinSourcePopup(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (context) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            const Text(
+              "Crear Pin",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+
+                _UploadOption(
+                  icon: Icons.camera_alt,
+                  label: 'Camera',
+                  onTap: () => pickFromCamera(context),
+                ),
+
+                const SizedBox(width: 32),
+
+                _UploadOption(
+                  icon: Icons.photo_library,
+                  label: 'Gallery',
+                  onTap: () => pickFromGallery(context),
+                ),
+
+              ],
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 
 class _UploadOption extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-
+  
   const _UploadOption({
     required this.icon,
     required this.label,

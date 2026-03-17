@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/pin_model.dart';
 import '../services/unsplash.dart';
 import '../widgets/pin.dart';
 import 'pin.dart';
@@ -13,26 +14,43 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
-
   List<String> searchHistory = [];
 
   final UnsplashService _unsplashService = UnsplashService();
 
-  List<String> images = [];
+  List<PinModel> images = [];
 
   bool isLoading = false;
 
   final TextEditingController controller = TextEditingController();
 
-  Future<void> searchImages(String query) async {
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
-    await saveSearch(query);
+  Future<void> searchImages(String query) async {
+    final trimmedQuery = query.trim();
+    if (trimmedQuery.isEmpty) {
+      return;
+    }
+
+    await saveSearch(trimmedQuery);
+
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       isLoading = true;
     });
 
-    images = await _unsplashService.fetchImages(query: query);
+    images = await _unsplashService.fetchImages(query: trimmedQuery);
+
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       isLoading = false;
@@ -66,9 +84,7 @@ class _SearchState extends State<Search> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       appBar: AppBar(
         title: TextField(
           controller: controller,
@@ -83,16 +99,12 @@ class _SearchState extends State<Search> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           if (searchHistory.isNotEmpty)
             const Padding(
               padding: EdgeInsets.all(12),
               child: Text(
                 "Recent searches",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
 
@@ -125,24 +137,25 @@ class _SearchState extends State<Search> {
                     padding: const EdgeInsets.all(8),
                     itemCount: images.length,
                     itemBuilder: (context, index) {
-
                       return PinGridItem(
-                        imageUrl: images[index],
+                        imageUrl: images[index].imageUrl,
                         onTap: () {
+                          final selectedPin = images[index];
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => PinDetail(
-                                imageUrl: images[index],
+                                imageUrl: selectedPin.imageUrl,
+                                title: selectedPin.title,
+                                description: selectedPin.description,
                               ),
                             ),
                           );
                         },
                       );
-
                     },
                   ),
-          )
+          ),
         ],
       ),
     );

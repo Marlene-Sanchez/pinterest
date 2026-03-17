@@ -2,26 +2,27 @@ import 'package:flutter/material.dart';
 
 class PinDetail extends StatelessWidget {
   final String imageUrl;
+  final String title;
+  final String description;
 
   const PinDetail({
     super.key,
     required this.imageUrl,
+    required this.title,
+    required this.description,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEFEFEF),
-
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-
       body: Column(
         children: [
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ClipRRect(
@@ -33,41 +34,23 @@ class PinDetail extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          const Text(
-            "Title",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-
           const SizedBox(height: 6),
-
-          const Text(
-            "Description.....",
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
+          Text(
+            description,
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
-
           const SizedBox(height: 12),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-
-                const Icon(
-                  Icons.more_horiz,
-                  size: 28,
-                ),
-
+                const Icon(Icons.more_horiz, size: 28),
                 const Spacer(),
-
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -81,15 +64,13 @@ class PinDetail extends StatelessWidget {
                   ),
                   onPressed: () {},
                   child: const Text(
-                    "Guardar",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'Guardar',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
