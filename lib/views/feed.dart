@@ -65,7 +65,7 @@ class _FeedContentState extends State<FeedContent> {
   }
 
   Future<void> loadImages() async {
-    images = await _unsplashService.fetchImages(query: 'aesthetic');
+    images = await _unsplashService.fetchImages(query: 'random');
     setState(() => isLoading = false);
   }
 

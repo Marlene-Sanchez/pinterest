@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import '../widgets/board_selector.dart';
 import '../services/pin_firebase_service.dart';
+import '../models/board_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CreatePin extends StatefulWidget {
   final File imageFile;
@@ -19,47 +22,6 @@ class CreatePin extends StatefulWidget {
 class _CreatePinState extends State<CreatePin> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-
-  void savePin() async {
-
-  String title = _titleController.text.trim();
-  String description = _descriptionController.text.trim();
-
-  if (title.isEmpty || description.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("El título o descripción están vacíos")),
-    );
-    return;
-  }
-
-  try {
-
-    await PinService.uploadPin(
-      imageFile: widget.imageFile,
-      title: title,
-      description: description,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Pin creado"),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    Navigator.pop(context);
-
-  } catch (e) {
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Error al subir el pin: $e"),
-        backgroundColor: Colors.red,
-      ),
-    );
-
-  }
-}
 
 
 
@@ -107,9 +69,54 @@ class _CreatePinState extends State<CreatePin> {
 
                 const SizedBox(height: 20),
 
-                ElevatedButton(        
+                ElevatedButton(
                   onPressed: () {
-                    savePin();
+
+                    showBoardSelector(
+                      context,
+                      (Board board) async {
+
+                        String title = _titleController.text.trim();
+                        String description = _descriptionController.text.trim();
+
+                        if (title.isEmpty || description.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("El título o descripción están vacíos")),
+                          );
+                          return;
+                        }
+
+                        try {
+
+                          await PinService.uploadPin(
+                            imageFile: widget.imageFile,
+                            title: title,
+                            description: description,
+                            boardId: board.id, 
+                          );
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Pin guardado en ${board.name}"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+
+                          Navigator.pop(context);
+
+                        } catch (e) {
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Error: $e"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+
+                        }
+                      },
+                    );
+
                   },
                   child: const Text("Guardar Pin"),
                 )
@@ -120,4 +127,22 @@ class _CreatePinState extends State<CreatePin> {
       ),
     );
   }
+  void showBoardSelector(
+  BuildContext context,
+  Function(Board) onBoardSelected,
+) {
+
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (context) {
+      return BoardSelector(
+        userId: FirebaseAuth.instance.currentUser!.uid,
+        onBoardSelected: onBoardSelected,
+      );
+    },
+  );
+}
 }

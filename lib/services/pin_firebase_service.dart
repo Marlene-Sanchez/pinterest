@@ -10,6 +10,7 @@ class PinService {
     required File imageFile,
     required String title,
     required String description,
+    required String boardId, 
     }) async {
       
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -25,6 +26,7 @@ class PinService {
     "description": description,
     "imageUrl": downloadUrl,
     "userId": FirebaseAuth.instance.currentUser!.uid,
+    "boardId": boardId, 
     "createdAt": DateTime.now()
   });
 }

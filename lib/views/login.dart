@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../services/user_service.dart';
 import '../auth_service.dart';
 import 'register.dart';
 import 'package:pinterest/views/register.dart';
@@ -132,39 +133,19 @@ class _LoginScreenState extends State<LoginScreen> {
       password: passwordController.text.trim(),
     );
 
+    await UserService.createUserIfNotExists();
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const Feed()),
     );
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Error')),
-      );
-    }
-  }
 
-  /*Future <void> loginWithGoogle() async {
-    final credential = GoogleAuthProvider.credential(idToken: idToken);
-    try {
-    final userCredential = await FirebaseAuth.instance.currentUser
-        ?.linkWithCredential(credential);
   } on FirebaseAuthException catch (e) {
-    switch (e.code) {
-      case "provider-already-linked":
-        print("The provider has already been linked to the user.");
-        break;
-      case "invalid-credential":
-        print("The provider's credential is not valid.");
-        break;
-      case "credential-already-in-use":
-        print("The account corresponding to the credential already exists, "
-            "or is already linked to a Firebase User.");
-        break;
-      // See the API reference for the full list of error codes.
-      default:
-        print("Unknown error.");
-      }
-      }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.message ?? 'Error')),
+    );
+  }
+}
 
-  }*/
+ 
   }
