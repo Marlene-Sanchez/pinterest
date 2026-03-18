@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/pin_model.dart';
 
 class UnsplashService {
-  static const String _accessKey = '6dTFsBD3tKyNBwRyd4reg79ER2CIIbU-PIeh7d62yH0';
+  static const String _accessKey = 'ACCESS KEY';
 
   Future<List<PinModel>> fetchImages({String query = 'inspiration'}) async {
     final url = Uri.parse(
