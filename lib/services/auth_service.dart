@@ -29,8 +29,8 @@ class AuthService {
 
   Future<void> signOut() async {
     final googleSignIn = GoogleSignIn(
-      clientId: kIsWeb ? _webClientId : null,
-      serverClientId: kIsWeb ? null : _webClientId,
+      clientId: kIsWeb ? null : _webClientId,
+      serverClientId: kIsWeb ? _webClientId : null,
     );
     if (await googleSignIn.isSignedIn()) {
       await googleSignIn.signOut();
@@ -85,26 +85,31 @@ class AuthService {
   }
 
   Future<UserCredential> signInWithGoogle() async {
-  final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      clientId: kIsWeb ? _webClientId : null,
+      serverClientId: kIsWeb ? null : _webClientId,
+    );
 
-  await googleSignIn.initialize(
-    clientId: kIsWeb ? _webClientId : null,
-    serverClientId: kIsWeb ? null : _webClientId,
-  );
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
-  final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
+    if (googleUser == null) {
+      throw FirebaseAuthException(code: 'google-sign-in-cancelled');
+    }
 
-  if (googleUser == null) {
-    throw FirebaseAuthException(code: 'google-sign-in-cancelled');
+    final googleAuth = await googleUser.authentication;
+
+    if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+      throw FirebaseAuthException(
+        code: 'google-sign-in-authentication-failed',
+        message: 'Failed to obtain authentication tokens',
+      );
+    }
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken!,
+      idToken: googleAuth.idToken!,
+    );
+
+    return FirebaseAuth.instance.signInWithCredential(credential);
   }
-
-  final googleAuth = googleUser.authentication;
-
-  final credential = GoogleAuthProvider.credential(
-    accessToken: googleAuth.accessToken,
-    idToken: googleAuth.idToken,
-  );
-
-  return FirebaseAuth.instance.signInWithCredential(credential);
-}
 }
