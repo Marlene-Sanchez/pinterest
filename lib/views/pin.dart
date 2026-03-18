@@ -21,7 +21,8 @@ class PinDetail extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Column(
+      body:
+        Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),

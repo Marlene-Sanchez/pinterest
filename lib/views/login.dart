@@ -1,12 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
+﻿import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import '../services/user_service.dart';
-import '../auth_service.dart';
-import 'register.dart';
-import 'package:pinterest/views/register.dart';
-import 'feed.dart';
 
+import '../services/auth_service.dart';
+import '../services/user_service.dart';
+import 'feed.dart';
+import 'register.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,8 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  
-  
+
   @override
   void dispose() {
     emailController.dispose();
@@ -35,19 +32,12 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.push_pin,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.push_pin, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             const Text(
               'Crea la vida\nque deseas',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
             TextField(
@@ -67,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Contraseña',
+                hintText: 'Contrasena',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -87,11 +77,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(24),
                   ),
                 ),
-                onPressed: () => loginWithEmail(),
-                child: const Text(
-                  'Continuar',
-                  style: TextStyle(fontSize: 16),
-                ),
+                onPressed: loginWithEmail,
+                child: const Text('Continuar', style: TextStyle(fontSize: 16)),
               ),
             ),
             const SizedBox(height: 12),
@@ -99,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.g_mobiledata),
-                onPressed: () {}  ,
+                onPressed: () {},
                 label: const Text('Continuar con Google'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -113,12 +100,10 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const RegisterScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
                 );
               },
-              child: const Text('¿No tienes cuenta? Regístrate'),
+              child: const Text('No tienes cuenta? Registrate'),
             ),
           ],
         ),
@@ -127,25 +112,24 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> loginWithEmail() async {
-  try {
-    await authService.value.signIn(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
+    try {
+      await authService.value.signIn(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-    await UserService.createUserIfNotExists();
+      await UserService.createUserIfNotExists();
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const Feed()),
-    );
-
-  } on FirebaseAuthException catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.message ?? 'Error')),
-    );
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const Feed()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Error')),
+      );
+    }
   }
 }
-
- 
-  }

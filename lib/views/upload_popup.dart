@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'create_pin.dart';
+import 'create_board.dart';
 import 'dart:io';
 final ImagePicker _picker = ImagePicker();
 Future<void> pickFromCamera(BuildContext context) async {
@@ -69,6 +70,7 @@ void showUploadPopup(BuildContext context) {
             ),
             const SizedBox(height: 24),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _UploadOption(
                   icon: Icons.push_pin,
@@ -83,7 +85,16 @@ void showUploadPopup(BuildContext context) {
                 _UploadOption(
                   icon: Icons.dashboard,
                   label: 'Board',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pop(context); 
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CreateBoard(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

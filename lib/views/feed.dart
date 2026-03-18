@@ -19,10 +19,14 @@ class Feed extends StatefulWidget {
 class _FeedState extends State<Feed> {
   int currentIndex = 0;
   final screens = const [FeedContent(), Search(), Profile()];
-
+  
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Pinterest"),
+      ),
       body: screens[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -44,7 +48,9 @@ class _FeedState extends State<Feed> {
       ),
     );
   }
-}
+  
+  
+  }
 
 class FeedContent extends StatefulWidget {
   const FeedContent({super.key});
@@ -55,14 +61,56 @@ class FeedContent extends StatefulWidget {
 
 class _FeedContentState extends State<FeedContent> {
   final UnsplashService _unsplashService = UnsplashService();
+  List<QueryDocumentSnapshot> pins = [];
   List<PinModel> images = [];
   bool isLoading = true;
+  final ScrollController _controller = ScrollController();
+  DocumentSnapshot? lastDocument;
+  bool hasMore=false;
 
   @override
   void initState() {
     super.initState();
+    hasMore = true;
+
     loadImages();
+    _fetchPins();
+
+    _controller.addListener(() {
+      if (_controller.position.pixels >=
+          _controller.position.maxScrollExtent - 200) {
+        _fetchPins();
+      }
+    });
   }
+
+  Future<void> _fetchPins() async {
+  if (isLoading || !hasMore) return;
+
+  setState(() => isLoading = true);
+
+  Query query = FirebaseFirestore.instance
+      .collection('pins')
+      .orderBy('createdAt', descending: true)
+      .limit(10);
+
+  if (lastDocument != null) {
+    query = query.startAfterDocument(lastDocument!);
+  }
+
+  final snapshot = await query.get();
+
+  if (snapshot.docs.isNotEmpty) {
+    lastDocument = snapshot.docs.last;
+    pins.addAll(snapshot.docs);
+  }
+
+  if (snapshot.docs.length < 10) {
+    hasMore = false;
+  }
+
+  setState(() => isLoading = false);
+}
 
   Future<void> loadImages() async {
     images = await _unsplashService.fetchImages(query: 'random');
@@ -90,72 +138,61 @@ class _FeedContentState extends State<FeedContent> {
             ),
           ),
 
+          
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('pins').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: MasonryGridView.count(
+                controller: _controller,
+                crossAxisCount: 2,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                itemCount: images.length + pins.length + (hasMore ? 1 : 0),
 
-                final firestorePins = snapshot.data!.docs;
+                itemBuilder: (context, index) {
+                  if (index == images.length + pins.length) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                final allImages = [
-                  ...images,
-                  ...firestorePins.map(
-                    (doc) => PinModel(
-                      imageUrl: doc['imageUrl'],
-                      title: doc['title'],
-                      description: doc['description'],
-                    ),
-                  ),
-                ];
+                  if (index < images.length) {
+                    final pin = images[index];
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: MasonryGridView.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    itemCount: allImages.length,
+                    return PinGridItem(
+                      imageUrl: pin.imageUrl,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PinDetail(
+                              imageUrl: pin.imageUrl,
+                              title: pin.title,
+                              description: pin.description,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
 
-                    itemBuilder: (context, index) {
-                      final pin = allImages[index];
+                  final doc = pins[index - images.length];
 
-                      return PinGridItem(
-                        imageUrl: pin.imageUrl,
-                        onTap: () {
-                          if (index >= images.length) {
-                            final doc = firestorePins[index - images.length];
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PinDetail(
-                                  imageUrl: doc['imageUrl'],
-                                  title: doc['title'],
-                                  description: doc['description'],
-                                ),
-                              ),
-                            );
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PinDetail(
-                                  imageUrl: pin.imageUrl,
-                                  title: pin.title,
-                                  description: pin.description,
-                                ),
-                              ),
-                            );
-                          }
-                        },
+                  return PinGridItem(
+                    imageUrl: doc['imageUrl'],
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PinDetail(
+                            imageUrl: doc['imageUrl'],
+                            title: doc['title'],
+                            description: doc['description'],
+                          ),
+                        ),
                       );
                     },
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ],

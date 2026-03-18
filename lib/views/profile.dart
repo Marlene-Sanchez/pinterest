@@ -2,6 +2,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:pinterest/views/board_detail.dart';
 
 import '../widgets/pin.dart';
 import 'pin.dart';
@@ -47,7 +48,7 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
 
           Padding(
             padding: const EdgeInsets.all(16),
-            child: _UserPinsGrid(userId: user?.uid ?? ''),
+            child: _UserPinsGrid(userId: user!.uid),
           ),
 
           _buildBoards(),
@@ -58,19 +59,19 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
   }
   Widget _buildBoards() {
 
-    final user = FirebaseAuth.instance.currentUser;
-
+    final user = FirebaseAuth.instance.currentUser!;
+  
     return StreamBuilder(
 
       stream: FirebaseFirestore.instance
           .collection("boards")
-          .where("userId", isEqualTo: user!.uid)
+          .where("userId", isEqualTo: user.uid)
           .orderBy("createdAt", descending: true)
           .snapshots(),
 
       builder: (context, snapshot) {
 
-        if (!snapshot.hasData) {
+        if (!snapshot.hasData) {  
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -95,19 +96,85 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
           itemCount: boards.length,
 
           itemBuilder: (_, i) {
-
+            
             final board = boards[i];
 
-            return Card(
-              child: Center(
-                child: Text(
-                  board["name"],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+            itemBuilder: (_, i) {
+
+            final boardDoc = boards[i];
+            final boardId = boardDoc.id;
+            final boardName = boardDoc["name"];
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BoardDetail(
+                      boardId: boardId,
+                      boardName: boardName,
+                    ),
                   ),
+                );
+              },
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    Expanded(
+                      child: FutureBuilder(
+                        future: FirebaseFirestore.instance
+                            .collection('pins')
+                            .where('boardId', isEqualTo: boardId)
+                            .limit(1)
+                            .get(),
+                        builder: (context, snapshot) {
+
+                          if (!snapshot.hasData) {
+                            return Container(color: Colors.grey[300]);
+                          }
+
+                          final pins = snapshot.data!.docs;
+
+                          if (pins.isEmpty) {
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Center(child: Text("Sin pines")),
+                            );
+                          }
+
+                          return ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
+                            child: Image.network(
+                              pins.first['imageUrl'],
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Text(
+                        boardName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
+          };
           },
         );
       },
@@ -144,6 +211,7 @@ class _UserPinsGrid extends StatelessWidget {
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
           itemCount: pins.length,
+
           itemBuilder: (context, index) {
             final pin = pins[index];
             final imageUrl = pin['imageUrl'] as String;
