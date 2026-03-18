@@ -6,39 +6,111 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../widgets/pin.dart';
 import 'pin.dart';
 
-class Profile extends StatelessWidget {
+class Profile extends StatefulWidget {
   const Profile({super.key});
 
   @override
+  State<Profile> createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
+
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+  @override
   Widget build(BuildContext context) {
+
     final user = FirebaseAuth.instance.currentUser;
     final username = user?.email?.split('@')[0] ?? 'Username';
 
     return Scaffold(
+
       appBar: AppBar(
         title: Text(username),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.grey,
-              child: Icon(Icons.person, size: 36, color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              username,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: _UserPinsGrid(userId: user?.uid ?? ''),
-            ),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: "Pins"),
+            Tab(text: "Boards"),
           ],
         ),
       ),
+
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: _UserPinsGrid(userId: user?.uid ?? ''),
+          ),
+
+          _buildBoards(),
+
+        ],
+      ),
+    );
+  }
+  Widget _buildBoards() {
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    return StreamBuilder(
+
+      stream: FirebaseFirestore.instance
+          .collection("boards")
+          .where("userId", isEqualTo: user!.uid)
+          .orderBy("createdAt", descending: true)
+          .snapshots(),
+
+      builder: (context, snapshot) {
+
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final boards = snapshot.data!.docs;
+
+        if (boards.isEmpty) {
+          return const Center(
+            child: Text("No boards yet"),
+          );
+        }
+
+        return GridView.builder(
+
+          padding: const EdgeInsets.all(16),
+
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+
+          itemCount: boards.length,
+
+          itemBuilder: (_, i) {
+
+            final board = boards[i];
+
+            return Card(
+              child: Center(
+                child: Text(
+                  board["name"],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
