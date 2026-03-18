@@ -1,5 +1,5 @@
 ﻿import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 ValueNotifier<AuthService> authService = ValueNotifier(AuthService());
@@ -13,10 +13,7 @@ class AuthService {
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
@@ -31,7 +28,10 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    final googleSignIn = GoogleSignIn(clientId: _webClientId);
+    final googleSignIn = GoogleSignIn(
+      clientId: kIsWeb ? _webClientId : null,
+      serverClientId: kIsWeb ? null : _webClientId,
+    );
     if (await googleSignIn.isSignedIn()) {
       await googleSignIn.signOut();
     }
@@ -85,19 +85,26 @@ class AuthService {
   }
 
   Future<UserCredential> signInWithGoogle() async {
-    final googleSignIn = GoogleSignIn(clientId: _webClientId);
-    final googleUser = await googleSignIn.signIn();
+  final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 
-    if (googleUser == null) {
-      throw FirebaseAuthException(code: 'google-sign-in-cancelled');
-    }
+  await googleSignIn.initialize(
+    clientId: kIsWeb ? _webClientId : null,
+    serverClientId: kIsWeb ? null : _webClientId,
+  );
 
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+  final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
 
-    return _auth.signInWithCredential(credential);
+  if (googleUser == null) {
+    throw FirebaseAuthException(code: 'google-sign-in-cancelled');
   }
+
+  final googleAuth = googleUser.authentication;
+
+  final credential = GoogleAuthProvider.credential(
+    accessToken: googleAuth.accessToken,
+    idToken: googleAuth.idToken,
+  );
+
+  return FirebaseAuth.instance.signInWithCredential(credential);
+}
 }

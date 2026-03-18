@@ -96,11 +96,6 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
           itemCount: boards.length,
 
           itemBuilder: (_, i) {
-            
-            final board = boards[i];
-
-            itemBuilder: (_, i) {
-
             final boardDoc = boards[i];
             final boardId = boardDoc.id;
             final boardName = boardDoc["name"];
@@ -174,7 +169,6 @@ class _ProfileState extends State<Profile> with SingleTickerProviderStateMixin {
                 ),
               ),
             );
-          };
           },
         );
       },

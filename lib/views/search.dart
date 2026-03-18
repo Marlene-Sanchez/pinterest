@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,13 +31,15 @@ class _SearchState extends State<Search> {
     super.dispose();
   }
 
-  Future<void> searchImages(String query) async {
+  Future<void> searchImages(String query, {bool saveToHistory = true}) async {
     final trimmedQuery = query.trim();
     if (trimmedQuery.isEmpty) {
       return;
     }
 
-    await saveSearch(trimmedQuery);
+    if (saveToHistory) {
+      await saveSearch(trimmedQuery);
+    }
 
     if (!mounted) {
       return;
@@ -80,6 +83,10 @@ class _SearchState extends State<Search> {
   void initState() {
     super.initState();
     loadHistory();
+    // Fetch initial inspiration suggestions so the screen is not empty
+    final topics = ['inspiration', 'home decor', 'outfits', 'tattoos', 'quotes', 'painting', 'photography'];
+    final query = topics[Random().nextInt(topics.length)];
+    searchImages(query, saveToHistory: false);
   }
 
   @override

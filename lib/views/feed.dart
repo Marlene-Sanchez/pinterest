@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:pinterest/views/upload_popup.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -84,6 +85,20 @@ class _FeedContentState extends State<FeedContent> {
     });
   }
 
+  Future<void> _refresh() async {
+    setState(() {
+      pins.clear();
+      images.clear();
+      lastDocument = null;
+      hasMore = true;
+      isLoading = true;
+    });
+    await Future.wait([
+      _fetchPins(),
+      loadImages(),
+    ]);
+  }
+
   Future<void> _fetchPins() async {
   if (isLoading || !hasMore) return;
 
@@ -113,7 +128,9 @@ class _FeedContentState extends State<FeedContent> {
 }
 
   Future<void> loadImages() async {
-    images = await _unsplashService.fetchImages(query: 'random');
+    final topics = ['minimalist', 'nature', 'architecture', 'technology', 'art', 'interior design', 'fashion', 'food', 'travel', 'cars', 'animals', 'space'];
+    final query = topics[Random().nextInt(topics.length)];
+    images = await _unsplashService.fetchImages(query: query);
     setState(() => isLoading = false);
   }
 
@@ -142,21 +159,39 @@ class _FeedContentState extends State<FeedContent> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: MasonryGridView.count(
-                controller: _controller,
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                itemCount: images.length + pins.length + (hasMore ? 1 : 0),
+              child: RefreshIndicator(
+                onRefresh: _refresh,
+                child: MasonryGridView.count(
+                  controller: _controller,
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  itemCount: images.length + pins.length + (hasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == images.length + pins.length) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                itemBuilder: (context, index) {
-                  if (index == images.length + pins.length) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                    if (index < pins.length) {
+                      final doc = pins[index];
+                      return PinGridItem(
+                        imageUrl: doc['imageUrl'],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PinDetail(
+                                imageUrl: doc['imageUrl'],
+                                title: doc['title'],
+                                description: doc['description'],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }
 
-                  if (index < images.length) {
-                    final pin = images[index];
-
+                    final pin = images[index - pins.length];
                     return PinGridItem(
                       imageUrl: pin.imageUrl,
                       onTap: () {
@@ -172,26 +207,8 @@ class _FeedContentState extends State<FeedContent> {
                         );
                       },
                     );
-                  }
-
-                  final doc = pins[index - images.length];
-
-                  return PinGridItem(
-                    imageUrl: doc['imageUrl'],
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PinDetail(
-                            imageUrl: doc['imageUrl'],
-                            title: doc['title'],
-                            description: doc['description'],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                  },
+                ),
               ),
             ),
           ),
