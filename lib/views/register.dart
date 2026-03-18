@@ -1,7 +1,7 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pinterest/services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'feed.dart';
 
@@ -15,7 +15,8 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -34,13 +35,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.push_pin, size: 56, color: Colors.red),
+            const Icon(
+              Icons.push_pin,
+              size: 56,
+              color: Colors.red,
+            ),
             const SizedBox(height: 16),
             const Text(
               'Crea tu cuenta',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 32),
+
             TextField(
               controller: emailController,
               decoration: InputDecoration(
@@ -54,11 +63,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
             TextField(
               controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Contrasena',
+                hintText: 'Contraseña',
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
@@ -68,11 +78,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
             TextField(
               controller: confirmPasswordController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Confirmar contrasena',
+                hintText: 'Confirmar contraseña',
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
@@ -93,7 +104,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 onPressed: _registerUser,
-                child: const Text('Crear cuenta', style: TextStyle(fontSize: 16)),
+                child: const Text(
+                  'Crear cuenta',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.g_mobiledata),
+                onPressed: _registerWithGoogle,
+                label: const Text('Continuar con Google'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
               ),
             ),
           ],
@@ -102,39 +131,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<void> _registerUser() async {
-    if (passwordController.text.trim() != confirmPasswordController.text.trim()) {
-      _showError('Las contrasenas no coinciden');
+  Future <void> _registerUser() async {
+    if (passwordController.text.trim() !=
+        confirmPasswordController.text.trim()) {
+      _showError('Las contraseñas no coinciden');
       return;
     }
-
     try {
-      final userCredential = await authService.value.createAccount(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
-      final uid = userCredential.user!.uid;
+      UserCredential userCredential =
+      await authService.value.createAccount(
+      email: emailController.text.trim () , 
+      password: passwordController.text.trim());
+      final uid =userCredential.user!.uid;
 
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      await FirebaseFirestore.instance.
+      collection('users').
+      doc(uid).
+      set({
         'email': emailController.text.trim(),
         'username': emailController.text.split('@')[0],
         'photoUrl': '',
         'createdAt': Timestamp.now(),
-      });
+    });
 
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const Feed()),
+      );
+    }    
+    on FirebaseAuthException catch (e) {
+    if (e.code == 'email-already-in-use') {
+      _showError('Este correo ya está registrado');
+    } else if (e.code == 'weak-password') {
+      _showError('La contraseña es muy débil');
+    } else {
+      _showError(e.message ?? 'Error');
+    }
+  }
+  
+  
+  }
+
+  Future<void> _registerWithGoogle() async {
+    try {
+      await authService.value.signInWithGoogle();
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const Feed()),
       );
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        _showError('Este correo ya esta registrado');
-      } else if (e.code == 'weak-password') {
-        _showError('La contrasena es muy debil');
-      } else {
-        _showError(e.message ?? 'Error');
-      }
+    } catch (e) {
+      _showError('Error: ${e.toString()}');
     }
   }
 
